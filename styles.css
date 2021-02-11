@@ -1,0 +1,172 @@
+body {
+  margin: 0;
+  background-color: lightgrey;
+}
+
+h1 {
+  text-align: center;
+  font-family: sans-serif;
+  color: #2C75FF;
+  margin-bottom: 100px;
+}
+
+#container {
+  margin: auto;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit,minmax(650px, 1fr));
+  width: 95%;
+  margin-bottom: 1rem;
+  justify-items: center;
+}
+
+.containers {
+  background-color: white;
+  padding: 20px 0;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  background-size: 500px;
+  border-radius: 10px;
+  min-height: 400px;
+  height: auto;
+  width: 600px;
+  margin: auto;
+}
+.containers h3 {
+  font-size: 30px;
+}
+
+.displayList{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  height: auto;
+}
+
+.list {
+  list-style: none;
+  margin-left: 0;
+  padding-left: 0;
+}
+
+.input {
+  text-align: center;
+  margin: auto;
+  width: 300px;
+  height: 25px;
+  border: 1px solid grey;
+  border-radius: 5px;
+}
+
+#tempInput {
+  font-size: 20px;
+  margin: 0;
+}
+
+.toDoItemList {
+  display: flex;
+  margin: auto;
+  align-items: center;
+  width: 90%;
+}
+
+.complete {
+  margin-right: 12%;
+  margin-left: 0;
+}
+
+.itemParagraph {
+  width: 50%;
+  margin: 0;
+}
+
+.edit {
+  margin-left: 12%;
+}
+
+.trash {
+  margin-left: 5%;
+}
+
+.lineThrough {
+  color: grey;
+  font-style: italic;
+  text-decoration: line-through;
+}
+
+::placeholder {
+  color: #2C75FF;
+}
+
+:-ms-input-placeholder {
+  color: #2C75FF;
+}
+
+::-ms-input-placeholder { 
+  color: #2C75FF;
+}
+
+#displayChanges {
+  text-align: center;
+  font-size: 30px;
+  text-decoration: underline;
+  margin: 25px;
+  height: 70px;
+}
+
+.blueIcon {
+    color: #2C75FF
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.addItemContainer {
+  margin: auto;
+  width: 75%;
+  display: flex;
+}
+
+@media(max-width: 660px) {
+  .containers {
+    margin: 0 20px;
+    width: 500px;
+  }
+  #container {
+    grid-template-columns: repeat(auto-fit,minmax(420px, 1fr)); 
+  }
+}
+
+@media(max-width: 550px) {
+  .containers {
+    margin: 0 20px;
+    width: 350px;
+  }
+  #container {
+    grid-template-columns: repeat(auto-fit,minmax(320px, 1fr)); 
+  }
+}
+
+@media(max-width: 420px) {
+  #tempInput {
+    width: 50px;
+  }
+
+  .containers {
+    word-break: break-all;
+    margin: auto;
+    margin-bottom: 16px;
+    width: 300px;
+  }
+  .refresh {
+    margin-right: 10px;
+  }
+  
+  #container {
+    width:90%;
+    display: block;
+  }
+}
