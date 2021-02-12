@@ -11,14 +11,14 @@ if ($_SERVER['REQUEST_METHOD'] != 'DELETE') {
   exit;
 }
 
-echo $_DELETE;
+$sessionList = array();
 
-if(sizeof($_DELETE['id']) == 1) {
-  array_splice($_SESSION["list"][$_DELETE['id']]);
-} else if(sizeof($_DELETE['id']) > 1) {
-  echo $_DELETE;
+if(isset($_SESSION["list"]) && is_array($_SESSION["list"])) {
+
+  foreach($_SESSION["list"] as $todo) {
+    array_push($sessionList, $todo);
+  }
+  unset($sessionList[$_GET['id']]);
 }
 
-$list = file_get_contents("php://input");
-
-echo $_SESSION;
+$_SESSION["list"] = $sessionList;

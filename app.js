@@ -129,7 +129,7 @@ plusCircle.addEventListener('click', function() {
   }
 })
 
-function postRequest(list) {
+function postRequest(list, givenId) {
   fetch(POST_REQUEST, {
     method: 'POST',
     headers: {
@@ -141,10 +141,10 @@ function postRequest(list) {
   .then(response => response.json)
   .catch(e => console.log("Error on post request : " + e));
 
-  getRequestForNewElement();
+  getRequestForNewElement(givenId);
 }
 
-function getRequestForNewElement() {
+function getRequestForNewElement(givenId) {
   fetch(GET_REQUEST, {
     method: 'GET',
     headers : {
@@ -153,14 +153,41 @@ function getRequestForNewElement() {
     }
   })
   .then(response => response.json())
-  .then(data => createHtmlForElements(JSON.parse(data[id])))
+  .then(data => createHtmlForNewElement(data, givenId))
   .catch(e => console.log("Error on get request : " + e));
+}
+
+function editElementRequest(element) {
+  fetch(PUT_REQUEST, {
+    method: 'PUT',
+    headers : {
+      'Accept' : 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: element
+  })
+  .then(response => response.json())
+  .then(updateToDoElements())
+  .catch(e => console.log("Error on put request : " + e));
+}
+
+function deleteElementRequest(element) {
+  fetch(DELETE_REQUEST + '/' + element, {
+    method: 'DELETE',
+    headers : {
+      'Accept' : 'application/json',
+      'Content-Type': 'application/json'
+    },
+  })
+  .then(response => response.json())
+  .then(updateToDoElements())
+  .catch(e => console.log("Error on put request : " + e));
 }
 
 destroy();
 
 function destroy() {
-  console.log("rz")
+  console.log("destroyed")
   fetch('./destroy.php', {
     method: 'GET',
     headers : {
@@ -180,35 +207,38 @@ function addToDo(inputField) {
     trash: false
   };
   
-  postRequest(JSON.stringify(newElement));
+  postRequest(JSON.stringify(newElement), id);
 
   list.push(newElement);
 
-  // actualItem = list[id];
-
-  // console.log(actualItem)
-
-  // console.log(list)
-  // console.log(id)
-
-  // if(actualItem.trash) {
-  //   return;
-  // }
+  id++;
 }
 
-function createHtmlForElements(itemsList) {
+function updateToDoElements() {
 
-  console.log(itemsList)
+  while(divList.firstChild) {
+    divList.removeChild(divList.firstChild);
+  }
 
-  const DONE = itemsList.done ? prefixCHECK + " " + CHECK : prefixUNCHECK + " " + UNCHECK;
-  const LINE = itemsList.done ? LINE_THROUGT : "";
+  for(i = 0; i < id; i++) {
+    console.log("update")
+    getRequestForNewElement(i);
+  }
+}
 
-  const add = `<ul class="list" id="list${itemsList.id}">
+function createHtmlForNewElement(item, givenId) {
+
+  item = JSON.parse(item[givenId]);
+
+  const DONE = item.done ? prefixCHECK + " " + CHECK : prefixUNCHECK + " " + UNCHECK;
+  const LINE = item.done ? LINE_THROUGT : "";
+
+  const add = `<ul class="list" id="list${item.id}">
                 <li class="toDoItemList">
-                <i class = "clickable complete ${DONE} fa-2x blueIcon" name="iconeBeforeText" job="complete" id="${itemsList.id}"></i>
-                <h3 class="itemParagraph ${LINE}" id="${itemsList.id}" job="text"> ${itemsList.name} </h3>
-                <i class = "clickable edit far fa-edit fa-2x blueIcon" id="${itemsList.id}" job="edit"></i>
-                <i class = "clickable trash far fa-trash-alt fa-2x blueIcon" job="delete" id="${itemsList.id}"></i></li>
+                <i class = "clickable complete ${DONE} fa-2x blueIcon" name="iconeBeforeText" job="complete" id="${item.id}"></i>
+                <h3 class="itemParagraph ${LINE}" id="${item.id}" job="text"> ${item.name} </h3>
+                <i class = "clickable edit far fa-edit fa-2x blueIcon" id="${item.id}" job="edit"></i>
+                <i class = "clickable trash far fa-trash-alt fa-2x blueIcon" job="delete" id="${item.id}"></i></li>
               </ul>`;
 
   const position = "beforeend";
@@ -216,8 +246,6 @@ function createHtmlForElements(itemsList) {
   divList.insertAdjacentHTML(position, add);
 
   displayChanges.innerText = "Votre to do a bien été ajoutée!";
-
-  id++;
 }
 
 
@@ -240,14 +268,15 @@ function validateToDo(element) {
 
 function removeToDo(element) {
 
-  let ulElementDisplayingList = document.getElementById("list" + list[element.id].id);
-  divList.removeChild(ulElementDisplayingList);
-
   list[element.id].trash = true;
+
+  deleteElementRequest(list[element.id].id);
+
   displayChanges.innerText = "Votre to do a bien été supprimée!";
 }
 
 function editToDo(element) {
+
   let textHtml = element.parentNode.querySelector(".itemParagraph");
 
   let tempInput = document.createElement('input');
@@ -273,13 +302,15 @@ function finishEditingToDo(element, tempInput) {
 
   const LINE = list[element.id].done ? LINE_THROUGT : "";
 
-  let newHtml = document.createElement('h3');
-  newHtml.className = "itemParagraph" + " " + LINE;
-  newHtml.id = list[element.id].id;
-  newHtml.setAttribute('job', 'text');
-  newHtml.innerHTML = list[element.id].name;
+  // let newHtml = document.createElement('h3');
+  // newHtml.className = "itemParagraph" + " " + LINE;
+  // newHtml.id = list[element.id].id;
+  // newHtml.setAttribute('job', 'text');
+  // newHtml.innerHTML = list[element.id].name;
 
-  tempInput.parentNode.replaceChild(newHtml, tempInput);
+  // tempInput.parentNode.replaceChild(newHtml, tempInput);
+
+  editElementRequest(JSON.stringify(list[element.id]));
 
   displayChanges.innerText = "Votre to do a bien été modifiée!";
 }
