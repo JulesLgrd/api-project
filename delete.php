@@ -16,9 +16,15 @@ $sessionList = array();
 if(isset($_SESSION["list"]) && is_array($_SESSION["list"])) {
 
   foreach($_SESSION["list"] as $todo) {
-    array_push($sessionList, $todo);
+
+    $todo = json_decode($todo);
+
+    if($todo->id == $_GET['id']) {
+      $todo->trash = true;
+    }
+
+    array_push($sessionList, json_encode($todo));
   }
-  unset($sessionList[$_GET['id']]);
 }
 
 $_SESSION["list"] = $sessionList;

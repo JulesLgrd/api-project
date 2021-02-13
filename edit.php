@@ -15,7 +15,18 @@ $sessionList = array();
 if(isset($_SESSION["list"]) && is_array($_SESSION["list"])) {
 
   foreach($_SESSION["list"] as $todo) {
-    array_push($sessionList, $todo);
+
+    $todo = json_decode($todo);
+
+    if(isset($_GET['id']) && $todo->id == $_GET['id']) {
+
+      if($todo -> done == false)
+        $todo -> done = true;
+      else
+        $todo -> done = false;
+    }
+
+    array_push($sessionList, json_encode($todo));
   }
 }
 

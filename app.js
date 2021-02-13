@@ -62,9 +62,16 @@ inputField.setAttribute('placeholder', 'Add a to-do');
 inputField.className = "input";
 secondDivAddItem.appendChild(inputField);
 
-let displayChanges = document.createElement('h2');
-displayChanges.id = "displayChanges";
-document.getElementById("main").appendChild(displayChanges);
+refreshIcon.addEventListener('click', function() {
+  list.forEach(element => {
+    if(element.trash) {
+      return;
+    }
+    list[element.id].trash = true;
+    deleteElementRequest(element);
+  })
+  updateToDoElements();
+})
 
 document.addEventListener('keyup', function(key) {
 
@@ -88,17 +95,6 @@ divList.addEventListener('click', function(elementTargeted) {
   } 
   else if(textHtml != null && element.attributes.job.value != 'undefined') {
     const elementJob = element.attributes.job.value;
-
-    // switch(elementJob) {
-    //   case "complete":
-    //     validateToDo(element);
-    //   case "edit":
-    //     editToDo(element);
-    //   case "text":
-    //     editToDo(element);
-    //   case "delete":
-    //     removeToDo(element);
-    // }
 
     if(elementJob == "complete") {
       validateToDo(element);
@@ -157,6 +153,19 @@ function getRequestForNewElement(givenId) {
   .catch(e => console.log("Error on get request : " + e));
 }
 
+function getRequestForExistingElement() {
+  fetch(GET_REQUEST, {
+    method: 'GET',
+    headers : {
+      'Accept' : 'application/json',
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(response => response.json())
+  .then(data => updateElement(data))
+  .catch(e => console.log("Error on get request : " + e));
+}
+
 function editElementRequest(element) {
   fetch(PUT_REQUEST, {
     method: 'PUT',
@@ -171,9 +180,9 @@ function editElementRequest(element) {
   .catch(e => console.log("Error on put request : " + e));
 }
 
-function deleteElementRequest(element) {
-  fetch(DELETE_REQUEST + '/' + element, {
-    method: 'DELETE',
+function editCompleteElementRequest(element) {
+  fetch(PUT_REQUEST + `?id=${element.id}`, {
+    method: 'PUT',
     headers : {
       'Accept' : 'application/json',
       'Content-Type': 'application/json'
@@ -181,6 +190,18 @@ function deleteElementRequest(element) {
   })
   .then(response => response.json())
   .then(updateToDoElements())
+  .catch(e => console.log("Error on put request : " + e));
+}
+
+function deleteElementRequest(element) {
+  fetch(DELETE_REQUEST + `?id=${element.id}`, {
+    method: 'DELETE',
+    headers : {
+      'Accept' : 'application/json',
+      'Content-Type': 'application/json'
+    },
+  })
+  .then(response => response.json())
   .catch(e => console.log("Error on put request : " + e));
 }
 
@@ -220,15 +241,23 @@ function updateToDoElements() {
     divList.removeChild(divList.firstChild);
   }
 
+  getRequestForExistingElement();
+}
+
+function updateElement(element) {
+
   for(i = 0; i < id; i++) {
-    console.log("update")
-    getRequestForNewElement(i);
+    createHtmlForNewElement(element, i);
   }
 }
 
 function createHtmlForNewElement(item, givenId) {
 
   item = JSON.parse(item[givenId]);
+
+  if(item.trash) {
+    return;
+  }
 
   const DONE = item.done ? prefixCHECK + " " + CHECK : prefixUNCHECK + " " + UNCHECK;
   const LINE = item.done ? LINE_THROUGT : "";
@@ -244,8 +273,6 @@ function createHtmlForNewElement(item, givenId) {
   const position = "beforeend";
 
   divList.insertAdjacentHTML(position, add);
-
-  displayChanges.innerText = "Votre to do a bien été ajoutée!";
 }
 
 
@@ -257,22 +284,19 @@ function validateToDo(element) {
 
   let textHtml = element.parentNode.querySelector(".itemParagraph");
   textHtml.classList.toggle(LINE_THROUGT);
-  list[element.id].done = list[element.id].done ? false : true;
 
-  if(list[element.id].done) {
-    displayChanges.innerText = "Votre to do a bien été cochée!";
-   } else {
-     displayChanges.innerText = "Votre to do a bien été décochée!";
-   }
+  editCompleteElementRequest(list[element.id]);
+  
+  list[element.id].done = list[element.id].done ? false : true;
 }
 
 function removeToDo(element) {
 
   list[element.id].trash = true;
 
-  deleteElementRequest(list[element.id].id);
+  deleteElementRequest(list[element.id]);
 
-  displayChanges.innerText = "Votre to do a bien été supprimée!";
+  updateToDoElements();
 }
 
 function editToDo(element) {
@@ -291,26 +315,9 @@ function editToDo(element) {
       const newName = tempInput.value;
       if(newName) {
         list[element.id].name = newName;
-        finishEditingToDo(element, tempInput);
+        editElementRequest(JSON.stringify(list[element.id]));
       }
     }
   })
   tempInput.focus();
-}
-
-function finishEditingToDo(element, tempInput) {
-
-  const LINE = list[element.id].done ? LINE_THROUGT : "";
-
-  // let newHtml = document.createElement('h3');
-  // newHtml.className = "itemParagraph" + " " + LINE;
-  // newHtml.id = list[element.id].id;
-  // newHtml.setAttribute('job', 'text');
-  // newHtml.innerHTML = list[element.id].name;
-
-  // tempInput.parentNode.replaceChild(newHtml, tempInput);
-
-  editElementRequest(JSON.stringify(list[element.id]));
-
-  displayChanges.innerText = "Votre to do a bien été modifiée!";
 }
