@@ -49,11 +49,13 @@ h1 {
   list-style: none;
   margin-left: 0;
   padding-left: 0;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 .input {
   text-align: center;
-  margin: auto;
+  margin: 40px auto 0 auto;
   width: 300px;
   height: 25px;
   border: 1px solid grey;
@@ -61,6 +63,7 @@ h1 {
 }
 
 #tempInput {
+  background: transparent;
   font-size: 20px;
   margin: 0;
 }
@@ -128,6 +131,7 @@ h1 {
   margin: auto;
   width: 75%;
   display: flex;
+  flex-direction: column;
 }
 
 @media(max-width: 660px) {
@@ -145,8 +149,13 @@ h1 {
     margin: 0 20px;
     width: 350px;
   }
+
   #container {
     grid-template-columns: repeat(auto-fit,minmax(320px, 1fr)); 
+  }
+
+  .input {
+    width: 250px;
   }
 }
 
@@ -161,6 +170,7 @@ h1 {
     margin-bottom: 16px;
     width: 300px;
   }
+
   .refresh {
     margin-right: 10px;
   }
@@ -168,5 +178,9 @@ h1 {
   #container {
     width:90%;
     display: block;
+  }
+
+  .input {
+    width: 220px;
   }
 }

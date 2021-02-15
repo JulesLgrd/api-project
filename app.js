@@ -62,6 +62,12 @@ inputField.setAttribute('placeholder', 'Add a to-do');
 inputField.className = "input";
 secondDivAddItem.appendChild(inputField);
 
+let inputFieldImageUrl = document.createElement('input');
+inputFieldImageUrl.setAttribute('type', 'text');
+inputFieldImageUrl.setAttribute('placeholder', 'Add an image URL for your to-do\'s background');
+inputFieldImageUrl.className = "input";
+secondDivAddItem.appendChild(inputFieldImageUrl);
+
 refreshIcon.addEventListener('click', function() {
 
   list = [];
@@ -109,20 +115,38 @@ divList.addEventListener('click', function(elementTargeted) {
 
 inputField.addEventListener("keyup", function(event) {
   if(event.key == 'Enter') {
-    const toDo = inputField.value;
-
-    if(toDo) {
-      addToDo(toDo)
-      inputField.value = "";
-    }
+    getInputFieldsValues();
   }
 })
 
+inputFieldImageUrl.addEventListener("keyup", function(event) {
+  if(event.key == 'Enter') {
+    getInputFieldsValues();
+  }
+})
+
+function getInputFieldsValues() {
+  const toDo = inputField.value;
+  const toDoBackground = inputFieldImageUrl.value;
+
+  if(toDo && !toDoBackground) {
+    addToDo(toDo, toDoBackground);
+    inputField.value = "";
+    inputFieldImageUrl.value = "";
+  } 
+  else if (toDo && toDoBackground) {
+    addToDo(toDo, toDoBackground);
+    inputField.value = "";
+    inputFieldImageUrl.value = "";
+    let ulElementDisplayingList = document.getElementById("list" + (id-1));
+    ulElementDisplayingList.style.backgroundImage = `url("${toDoBackground}")`;
+  }
+}
+
 plusCircle.addEventListener('click', function() {
   let inputFieldValue = inputField.value;
-  if(inputFieldValue != null && inputFieldValue.length >= 1) {
-    addToDo(inputFieldValue);
-    inputField.value = "";
+  if(inputFieldValue) {
+    getInputFieldsValues();
   }
 })
 
@@ -188,13 +212,18 @@ function deleteElementRequest(element) {
   .catch(e => console.log("Error on delete request : " + e));
 }
   
-function addToDo(inputField) {
+function addToDo(inputField, backgroundImage) {
+
+  if(!backgroundImage) {
+    backgroundImage = "";
+  }
 
   let newElement = {
     name: inputField,
     id: id,
     done: false,
-    trash: false
+    trash: false,
+    background: backgroundImage
   };
   
   postRequest(JSON.stringify(newElement));
@@ -212,6 +241,12 @@ function retrieveElements(element) {
         list.push(JSON.parse(item));
         createHtmlForNewElement(item);
         id++;
+        item = JSON.parse(item);
+        
+        if(item.background) {
+          let ulElementDisplayingList = document.getElementById("list" + (id-1));
+          ulElementDisplayingList.style.backgroundImage = `url("${item.background}")`;
+        }
       });  
     }
   }
