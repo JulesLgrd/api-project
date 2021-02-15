@@ -13,18 +13,23 @@ if ($_SERVER['REQUEST_METHOD'] != 'DELETE') {
 
 $sessionList = array();
 
-if(isset($_SESSION["list"]) && is_array($_SESSION["list"])) {
+if($_GET['id'] == null) {
+  $_SESSION["list"] = [];
+} else {
+  if(isset($_SESSION["list"]) && is_array($_SESSION["list"])) {
 
-  foreach($_SESSION["list"] as $todo) {
-
-    $todo = json_decode($todo);
-
-    if($todo->id == $_GET['id']) {
-      $todo->trash = true;
+    foreach($_SESSION["list"] as $todo) {
+  
+      $todo = json_decode($todo);
+  
+      if($todo->id == $_GET['id']) {
+        $todo->trash = true;
+      }
+  
+      array_push($sessionList, json_encode($todo));
     }
-
-    array_push($sessionList, json_encode($todo));
   }
+  
 }
 
 $_SESSION["list"] = $sessionList;

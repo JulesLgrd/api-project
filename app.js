@@ -63,14 +63,13 @@ inputField.className = "input";
 secondDivAddItem.appendChild(inputField);
 
 refreshIcon.addEventListener('click', function() {
-  list.forEach(element => {
-    if(element.trash) {
-      return;
-    }
-    list[element.id].trash = true;
-    deleteElementRequest(element);
-  })
-  updateToDoElements();
+
+  list = [];
+  id = 0;
+
+  deleteElementRequest();
+
+  document.location.reload();
 })
 
 document.addEventListener('keyup', function(key) {
@@ -88,12 +87,14 @@ document.addEventListener('keyup', function(key) {
 })
 
 divList.addEventListener('click', function(elementTargeted) {
+
   const element = elementTargeted.target;
   let textHtml = element.parentNode.querySelector(".itemParagraph");
+
   if(element.className == 'input') {
       return;
-  } 
-  else if(textHtml != null && element.attributes.job.value != 'undefined') {
+  } else if(textHtml != null) {
+
     const elementJob = element.attributes.job.value;
 
     if(elementJob == "complete") {
@@ -125,22 +126,24 @@ plusCircle.addEventListener('click', function() {
   }
 })
 
-function postRequest(list, givenId) {
+function postRequest(element) {
   fetch(POST_REQUEST, {
     method: 'POST',
     headers: {
       'Accept' : 'application/json',
       'Content-Type': 'application/json'
     },
-    body: list
+    body: element
   })
   .then(response => response.json)
   .catch(e => console.log("Error on post request : " + e));
 
-  getRequestForNewElement(givenId);
+  createHtmlForNewElement(element);
 }
 
-function getRequestForNewElement(givenId) {
+getRequestForExistingElements();
+
+function getRequestForExistingElements() {
   fetch(GET_REQUEST, {
     method: 'GET',
     headers : {
@@ -149,39 +152,13 @@ function getRequestForNewElement(givenId) {
     }
   })
   .then(response => response.json())
-  .then(data => createHtmlForNewElement(data, givenId))
+  .then(data => retrieveElements(data))
   .catch(e => console.log("Error on get request : " + e));
 }
 
-function getRequestForExistingElement() {
-  fetch(GET_REQUEST, {
-    method: 'GET',
-    headers : {
-      'Accept' : 'application/json',
-      'Content-Type': 'application/json'
-    }
-  })
-  .then(response => response.json())
-  .then(data => updateElement(data))
-  .catch(e => console.log("Error on get request : " + e));
-}
+function editElementRequest(element, value) {
 
-function editElementRequest(element) {
-  fetch(PUT_REQUEST, {
-    method: 'PUT',
-    headers : {
-      'Accept' : 'application/json',
-      'Content-Type': 'application/json'
-    },
-    body: element
-  })
-  .then(response => response.json())
-  .then(updateToDoElements())
-  .catch(e => console.log("Error on put request : " + e));
-}
-
-function editCompleteElementRequest(element) {
-  fetch(PUT_REQUEST + `?id=${element.id}`, {
+  fetch(PUT_REQUEST + `?id=${element}` + '&' + value, {
     method: 'PUT',
     headers : {
       'Accept' : 'application/json',
@@ -189,12 +166,18 @@ function editCompleteElementRequest(element) {
     },
   })
   .then(response => response.json())
-  .then(updateToDoElements())
   .catch(e => console.log("Error on put request : " + e));
 }
 
 function deleteElementRequest(element) {
-  fetch(DELETE_REQUEST + `?id=${element.id}`, {
+
+  let elementId = '';
+
+  if(element != null) {
+    elementId = element.id;
+  }
+
+  fetch(DELETE_REQUEST + `?id=${elementId}`, {
     method: 'DELETE',
     headers : {
       'Accept' : 'application/json',
@@ -202,21 +185,7 @@ function deleteElementRequest(element) {
     },
   })
   .then(response => response.json())
-  .catch(e => console.log("Error on put request : " + e));
-}
-
-destroy();
-
-function destroy() {
-  console.log("destroyed")
-  fetch('./destroy.php', {
-    method: 'GET',
-    headers : {
-      'Accept' : 'application/json',
-      'Content-Type': 'application/json'
-    }
-  })
-  .catch(e => console.log("Une erreur est survenue : " + e));
+  .catch(e => console.log("Error on delete request : " + e));
 }
   
 function addToDo(inputField) {
@@ -228,32 +197,29 @@ function addToDo(inputField) {
     trash: false
   };
   
-  postRequest(JSON.stringify(newElement), id);
+  postRequest(JSON.stringify(newElement));
 
   list.push(newElement);
 
   id++;
 }
 
-function updateToDoElements() {
+function retrieveElements(element) {
 
-  while(divList.firstChild) {
-    divList.removeChild(divList.firstChild);
-  }
-
-  getRequestForExistingElement();
-}
-
-function updateElement(element) {
-
-  for(i = 0; i < id; i++) {
-    createHtmlForNewElement(element, i);
+  if(element != null) {
+    if(list.length == 0) {
+      element.forEach(item => {
+        list.push(JSON.parse(item));
+        createHtmlForNewElement(item);
+        id++;
+      });  
+    }
   }
 }
 
-function createHtmlForNewElement(item, givenId) {
+function createHtmlForNewElement(item) {
 
-  item = JSON.parse(item[givenId]);
+  item = JSON.parse(item);
 
   if(item.trash) {
     return;
@@ -285,18 +251,19 @@ function validateToDo(element) {
   let textHtml = element.parentNode.querySelector(".itemParagraph");
   textHtml.classList.toggle(LINE_THROUGT);
 
-  editCompleteElementRequest(list[element.id]);
+  editElementRequest(list[element.id].id, 'value=done');
   
   list[element.id].done = list[element.id].done ? false : true;
 }
 
 function removeToDo(element) {
 
+  let ulElementDisplayingList = document.getElementById("list" + list[element.id].id);
+  divList.removeChild(ulElementDisplayingList);
+
   list[element.id].trash = true;
 
   deleteElementRequest(list[element.id]);
-
-  updateToDoElements();
 }
 
 function editToDo(element) {
@@ -315,7 +282,15 @@ function editToDo(element) {
       const newName = tempInput.value;
       if(newName) {
         list[element.id].name = newName;
-        editElementRequest(JSON.stringify(list[element.id]));
+        editElementRequest(JSON.stringify(list[element.id].id), 'name=' + list[element.id].name);
+
+        const LINE = list[element.id].done ? LINE_THROUGT : "";
+        let newHtml = document.createElement('h3');
+        newHtml.className = "itemParagraph" + " " + LINE;
+        newHtml.id = list[element.id].id;
+        newHtml.setAttribute('job', 'text');
+        newHtml.innerHTML = list[element.id].name;
+        tempInput.parentNode.replaceChild(newHtml, tempInput);
       }
     }
   })
